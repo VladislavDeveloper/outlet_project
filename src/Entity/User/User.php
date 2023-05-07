@@ -9,16 +9,20 @@ use Doctrine\ORM\Mapping\CustomIdGenerator;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\GeneratedValue;
 use Doctrine\ORM\Mapping\Id;
+use Doctrine\ORM\Mapping\Table;
+use JsonSerializable;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
+use Symfony\Component\Uid\Uuid;
 
 #[Entity(repositoryClass:"App\Repository\UsersRepository\UserRepository")]
-class User
+#[Table(name: "`users`")]
+class User implements JsonSerializable
 {
     #[Id]
-    #[Column(type: "uuid", unique: true)]
+    #[Column(name: "user_uuid", type: "uuid", unique: true)]
     #[GeneratedValue(strategy: 'CUSTOM')]
     #[CustomIdGenerator(class: UuidGenerator::class)]
-    private int $user_uuid;
+    private Uuid $user_uuid;
 
     #[Column(type: "string")]
     private string $username;
@@ -45,12 +49,12 @@ class User
     private string $gender;
 
     #[Column(name: 'interests')]
-    private array $interestes;
+    private array $interestes = [];
 
     /**
      * Get the value of user_uuid
      */ 
-    public function getUser_uuid(): int
+    public function getUser_uuid(): Uuid
     {
         return $this->user_uuid;
     }
@@ -149,7 +153,7 @@ class User
     /**
      * Get the value of date_of_birth
      */ 
-    public function getDate_of_birth(): DateTime
+    public function getDate_of_birth()
     {
         return $this->date_of_birth;
     }
@@ -157,8 +161,9 @@ class User
     /**
      * Set the value of date_of_birth
      */ 
-    public function setDate_of_birth($date_of_birth): void
+    public function setDate_of_birth(DateTime $date_of_birth): void
     {
+
         $this->date_of_birth = $date_of_birth;
 
     }
@@ -166,7 +171,7 @@ class User
     /**
      * Get the value of date_of_create
      */ 
-    public function getDate_of_create(): DateTime
+    public function getDate_of_create()
     {
         return $this->date_of_create;
     }
@@ -174,7 +179,7 @@ class User
     /**
      * Set the value of date_of_create
      */ 
-    public function setDate_of_create($date_of_create): void
+    public function setDate_of_create(DateTime $date_of_create): void
     {
         $this->date_of_create = $date_of_create;
 
@@ -212,5 +217,84 @@ class User
     {
         $this->interestes = $interestes;
 
+    }
+
+    public function jsonSerialize(): mixed
+    {
+        return[
+            "user_uuid" => $this->getUser_uuid(),
+            "username" => $this->getUsername(),
+            "first_name" => $this->getFirst_name(),
+            "last_name" => $this->getLast_name(),
+            "gender" => $this->getGender(),
+            "date_of_birth" => $this->getDate_of_birth(),
+            "date_of_cerate" => $this->getDate_of_create(),
+            "interests" => $this->getInterestes()
+        ];
+    }
+
+    public function getUserUuid(): ?Uuid
+    {
+        return $this->user_uuid;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->first_name;
+    }
+
+    public function setFirstName(string $first_name): self
+    {
+        $this->first_name = $first_name;
+
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->last_name;
+    }
+
+    public function setLastName(string $last_name): self
+    {
+        $this->last_name = $last_name;
+
+        return $this;
+    }
+
+    public function getUserPhotoId(): ?string
+    {
+        return $this->user_photo_id;
+    }
+
+    public function setUserPhotoId(string $user_photo_id): self
+    {
+        $this->user_photo_id = $user_photo_id;
+
+        return $this;
+    }
+
+    public function getDateOfBirth()
+    {
+        return $this->date_of_birth;
+    }
+
+    public function setDateOfBirth(\DateTimeInterface $date_of_birth): self
+    {
+        $this->date_of_birth = $date_of_birth;
+
+        return $this;
+    }
+
+    public function getDateOfCreate()
+    {
+        return $this->date_of_create;
+    }
+
+    public function setDateOfCreate(\DateTimeInterface $date_of_create): self
+    {
+        $this->date_of_create = $date_of_create;
+
+        return $this;
     }
 }
