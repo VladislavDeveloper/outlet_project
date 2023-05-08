@@ -12,11 +12,13 @@ use Doctrine\ORM\Mapping\Id;
 use Doctrine\ORM\Mapping\Table;
 use JsonSerializable;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Uid\Uuid;
 
 #[Entity(repositoryClass:"App\Repository\UsersRepository\UserRepository")]
 #[Table(name: "`users`")]
-class User implements JsonSerializable
+class User implements JsonSerializable, UserInterface, PasswordAuthenticatedUserInterface
 {
     #[Id]
     #[Column(name: "user_uuid", type: "uuid", unique: true)]
@@ -50,6 +52,9 @@ class User implements JsonSerializable
 
     #[Column(name: 'interests')]
     private array $interestes = [];
+
+    #[Column(name: 'roles')]
+    private array $roles;
 
     /**
      * Get the value of user_uuid
@@ -85,22 +90,20 @@ class User implements JsonSerializable
     }
 
     /**
-     * Get the value of password
-     */ 
-    public function getPassword(): int
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function getPassword(): string
     {
         return $this->password;
     }
 
-    /**
-     * Set the value of password
-     * Добавить логику хэширования !!!
-     */ 
-    public function setPassword($password)
+    public function setPassword(string $password): self
     {
         $this->password = $password;
 
+        return $this;
     }
+    
 
     /**
      * Get the value of first_name
@@ -229,8 +232,44 @@ class User implements JsonSerializable
             "gender" => $this->getGender(),
             "date_of_birth" => $this->getDate_of_birth(),
             "date_of_cerate" => $this->getDate_of_create(),
-            "interests" => $this->getInterestes()
+            "interests" => $this->getInterestes(),
+            "roles" => $this->getRoles()
         ];
+    }
+
+    /**
+     * The public representation of the user (e.g. a username, an email address, etc.)
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->username;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    public function setRoles(array $roles): self
+    {
+        $this->roles = $roles;
+
+        return $this;
+    }
+
+    public function eraseCredentials()
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
     }
 
     public function getUserUuid(): ?Uuid

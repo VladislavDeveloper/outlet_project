@@ -11,12 +11,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
 {
     #[Route('/addUser', name: 'add_user')]
-    public function createUser(EntityManagerInterface $entityManager, Request $request): JsonResponse
+    public function createUser(EntityManagerInterface $entityManager, UserPasswordHasherInterface $hasher, Request $request): JsonResponse
     {
         try {
             $request = $this->transformJsonBody($request);
@@ -26,7 +27,7 @@ class UserController extends AbstractController
 
             //Хэширование пароля
 
-            $passwordHash = hash('sha256', $request->get('password'));
+            $passwordHash = $hasher->hashPassword($user, $request->get('password'));
 
             $user->setPassword($passwordHash);
 
@@ -43,6 +44,7 @@ class UserController extends AbstractController
             
             $user->setDate_of_create($date_of_create);
             $user->setGender($request->get('gender'));
+            $user->setRoles(['ROLE_USER']);
 
             $entityManager->persist($user);
             $entityManager->flush();
@@ -64,7 +66,7 @@ class UserController extends AbstractController
         }
     }
 
-    #[Route('/getusers')]
+    #[Route('/api/getusers')]
     public function getAllUsers(UserRepository $usersRepository): JsonResponse
     {
         $data = $usersRepository->findAll();
@@ -88,7 +90,7 @@ class UserController extends AbstractController
         return $this->response($data);
     }
 
-    #[Route('/test')]
+    #[Route('/api/test')]
     public function test(): JsonResponse
     {
         return $this->json([
