@@ -2,49 +2,29 @@
 
 namespace App\Controller\UserController;
 
-use App\Entity\User\User;
 use App\Repository\UsersRepository\UserRepository;
-use DateTime;
+use App\Service\UserService\CreateUserService;
+use App\Service\UserService\UpdateUserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
 {
     #[Route('/addUser', name: 'add_user')]
-    public function createUser(EntityManagerInterface $entityManager, Request $request): JsonResponse
+    public function createUser(EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, Request $request): JsonResponse
     {
         try {
             $request = $this->transformJsonBody($request);
 
-            $user = new User();
-            $user->setUsername($request->get('username'));
-
-            //Хэширование пароля
-
-            $passwordHash = hash('sha256', $request->get('password'));
-
-            $user->setPassword($passwordHash);
-
-            $user->setFirst_name($request->get('first_name'));
-            $user->setLast_name($request->get('last_name'));
-            $user->setUser_photo_id($request->get('user_photo_id'));
-
-            //Конвертируем строковое представление date_of_birth в  объект datetime
-            $date_of_birth = DateTime::createFromFormat('d/m/Y', $request->get('date_of_birth'));
-
-            $user->setDate_of_birth($date_of_birth);
-            
-            $date_of_create = new DateTime();
-            
-            $user->setDate_of_create($date_of_create);
-            $user->setGender($request->get('gender'));
+            $user = CreateUserService::handler($request, $passwordHasher);
 
             $entityManager->persist($user);
+
             $entityManager->flush();
 
             $data = [
@@ -64,14 +44,14 @@ class UserController extends AbstractController
         }
     }
 
-    #[Route('/getusers')]
+    #[Route('/api/getusers')]
     public function getAllUsers(UserRepository $usersRepository): JsonResponse
     {
         $data = $usersRepository->findAll();
         return $this->response($data);
     }
 
-    #[Route('/getuser/{user_uuid}')]
+    #[Route('/api/getuser/{user_uuid}')]
     public function getUserById(UserRepository $usersRepository, string $user_uuid): JsonResponse
     {
         $data = $usersRepository->find($user_uuid);
@@ -88,7 +68,81 @@ class UserController extends AbstractController
         return $this->response($data);
     }
 
-    #[Route('/test')]
+    #[Route('/api/update/profile/{user_uuid}')]
+    public function updateUser(UserRepository $usersRepository, Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, string $user_uuid): JsonResponse
+    {
+        $user = $usersRepository->find($user_uuid);
+
+        if(!$user){
+            $data = [
+                'status' => 404,
+                'message' => 'User not found'
+            ];
+            return $this->response($data, 404);
+        }
+
+        try {
+
+            $request = $this->transformJsonBody($request);
+
+            if(!$request){
+                $data = [
+                    'status' => 404,
+                    'message' => 'Nothing to update'
+                ];
+                return $this->response($data, 404);
+            }
+
+            $user = UpdateUserService::handler($request, $user, $passwordHasher);
+
+            $entityManager->persist($user);
+
+            $entityManager->flush();
+
+            $data = [
+                'status' => 200,
+                'Message' => 'Post successfully saved'
+            ];
+
+            return $this->json($data);
+
+        } catch (Exception $e) {
+            $data = [
+                'status' => 404,
+                'Message' => 'Post not saved',
+                'error' => $e->getMessage()
+            ];
+            return $this->json($data);
+        }
+    }
+
+    #[Route('/api/delete/profile/{user_uuid}', name: 'delete_account')]
+    public function deleteUserByUuid(EntityManagerInterface $entityManager, UserRepository $usersRepository, string $user_uuid): JsonResponse
+    {
+        $data = $usersRepository->find($user_uuid);
+
+        if(!$data){
+            $data = [
+                'status' => 404,
+                'message' => 'User not found'
+            ];
+
+            return $this->response($data, 404);
+        }
+
+        $entityManager->remove($data);
+        $entityManager->flush();
+
+        $data = [
+            "status" => 200,
+            "message" => "Post deleted successfully"
+        ];
+
+
+        return $this->response($data);
+    }
+
+    #[Route('/api/test')]
     public function test(): JsonResponse
     {
         return $this->json([
