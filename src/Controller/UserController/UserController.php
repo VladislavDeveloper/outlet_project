@@ -135,7 +135,7 @@ class UserController extends AbstractController
 
         $data = [
             "status" => 200,
-            "message" => "Post deleted successfully"
+            "message" => "User deleted successfully"
         ];
 
 

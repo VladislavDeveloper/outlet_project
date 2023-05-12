@@ -2,13 +2,17 @@
 
 namespace App\Entity\User;
 
+use App\Entity\Post\Post;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\CustomIdGenerator;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\GeneratedValue;
 use Doctrine\ORM\Mapping\Id;
+use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\Table;
 use JsonSerializable;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
@@ -55,6 +59,19 @@ class User implements JsonSerializable, UserInterface, PasswordAuthenticatedUser
 
     #[Column(name: 'roles')]
     private array $roles;
+
+    #[OneToMany(targetEntity: 'App\Entity\Post\Post', mappedBy: 'author')]
+    private $posts;
+
+    public function __construct()
+    {
+        $this->posts = new ArrayCollection();
+    }
+
+    public function getPosts(): Collection
+    {
+        return $this->posts;
+    }
 
     /**
      * Get the value of user_uuid

@@ -8,7 +8,7 @@ use Exception;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-class CreateUserService implements UserServiceInterface
+class CreateUserService
 {
     static public function handler(Request $request, ?UserPasswordHasherInterface $passwordHasher): User
     {
