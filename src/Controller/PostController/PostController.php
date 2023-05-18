@@ -95,7 +95,7 @@ class PostController extends AbstractController
         return $this->response($posts);
     }
 
-    #[Route('/api/posts/delete/{post_uuid}', name: 'deletePostById', methods: ['GET'])]
+    #[Route('/api/posts/delete/{post_uuid}', name: 'deletePostById', methods: ['DELETE'])]
     public function deletePostById(EntityManagerInterface $entityManager, PostRepository $postsRepository, string $post_uuid): JsonResponse
     {
         $post = $postsRepository->find($post_uuid);

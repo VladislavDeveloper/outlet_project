@@ -27,8 +27,6 @@ class CreatePostService
 
             $post->setDateOfCreate($date_of_create);
 
-            $post->setComments([]);
-
             $post->setLikes([]);
 
             $post->setDislikes([]);

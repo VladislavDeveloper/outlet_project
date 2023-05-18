@@ -2,6 +2,9 @@
 
 namespace App\Entity\User;
 
+use App\Entity\Comment\Comment;
+use App\Entity\Dislike\Dislike;
+use App\Entity\Like\Like;
 use App\Entity\Post\Post;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -63,14 +66,31 @@ class User implements JsonSerializable, UserInterface, PasswordAuthenticatedUser
     #[OneToMany(targetEntity: 'App\Entity\Post\Post', mappedBy: 'author')]
     private $posts;
 
+    #[OneToMany(targetEntity: Comment::class, mappedBy: 'author')]
+    private $comments;
+
+    #[OneToMany(targetEntity: Like::class, mappedBy: 'author')]
+    private $likes;
+
+    #[OneToMany(targetEntity: Dislike::class, mappedBy: 'author')]
+    private $dislikes;
+
     public function __construct()
     {
         $this->posts = new ArrayCollection();
+        $this->comments = new ArrayCollection();
+        $this->likes = new ArrayCollection();
+        $this->dislikes = new ArrayCollection();
     }
 
     public function getPosts(): Collection
     {
         return $this->posts;
+    }
+
+    public function getComments(): Collection
+    {
+        return $this->comments;
     }
 
     /**
@@ -350,6 +370,110 @@ class User implements JsonSerializable, UserInterface, PasswordAuthenticatedUser
     public function setDateOfCreate(\DateTimeInterface $date_of_create): self
     {
         $this->date_of_create = $date_of_create;
+
+        return $this;
+    }
+
+    public function addPost(Post $post): self
+    {
+        if (!$this->posts->contains($post)) {
+            $this->posts->add($post);
+            $post->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removePost(Post $post): self
+    {
+        if ($this->posts->removeElement($post)) {
+            // set the owning side to null (unless already changed)
+            if ($post->getAuthor() === $this) {
+                $post->setAuthor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addComment(Comment $comment): self
+    {
+        if (!$this->comments->contains($comment)) {
+            $this->comments->add($comment);
+            $comment->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeComment(Comment $comment): self
+    {
+        if ($this->comments->removeElement($comment)) {
+            // set the owning side to null (unless already changed)
+            if ($comment->getAuthor() === $this) {
+                $comment->setAuthor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Like>
+     */
+    public function getLikes(): Collection
+    {
+        return $this->likes;
+    }
+
+    public function addLike(Like $like): self
+    {
+        if (!$this->likes->contains($like)) {
+            $this->likes->add($like);
+            $like->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLike(Like $like): self
+    {
+        if ($this->likes->removeElement($like)) {
+            // set the owning side to null (unless already changed)
+            if ($like->getAuthor() === $this) {
+                $like->setAuthor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Dislike>
+     */
+    public function getDislikes(): Collection
+    {
+        return $this->dislikes;
+    }
+
+    public function addDislike(Dislike $dislike): self
+    {
+        if (!$this->dislikes->contains($dislike)) {
+            $this->dislikes->add($dislike);
+            $dislike->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDislike(Dislike $dislike): self
+    {
+        if ($this->dislikes->removeElement($dislike)) {
+            // set the owning side to null (unless already changed)
+            if ($dislike->getAuthor() === $this) {
+                $dislike->setAuthor(null);
+            }
+        }
 
         return $this;
     }

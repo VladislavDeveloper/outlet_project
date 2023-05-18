@@ -2,8 +2,13 @@
 
 namespace App\Entity\Post;
 
+use App\Entity\Comment\Comment;
+use App\Entity\Dislike\Dislike;
+use App\Entity\Like\Like;
 use App\Entity\User\User;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\CustomIdGenerator;
@@ -12,6 +17,7 @@ use Doctrine\ORM\Mapping\GeneratedValue;
 use Doctrine\ORM\Mapping\Id;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
+use Doctrine\ORM\Mapping\OneToMany;
 use Doctrine\ORM\Mapping\Table;
 use JsonSerializable;
 use Symfony\Component\Uid\Uuid;
@@ -44,15 +50,63 @@ class Post implements JsonSerializable
     #[Column(name: 'date_of_create', type: Types::DATETIME_MUTABLE)]
     private DateTime $date_of_create;
 
-    #[Column(name: 'comments')]
-    private array $comments;
+    #[OneToMany(targetEntity: Comment::class, mappedBy: 'post', cascade: ['remove'])]
+    private $comments;
 
-    #[Column(name: 'likes')]
-    private array $likes;
+    #[OneToMany(targetEntity: Like::class, mappedBy: 'post', cascade: ['remove'])]
+    private $likes;
 
-    #[Column(name: 'dislikes')]
-    private array $dislikes;
+    #[OneToMany(targetEntity: Dislike::class, mappedBy: 'post', cascade: ['remove'])]
+    private $dislikes;
 
+    public function __construct()
+    {
+        $this->comments = new ArrayCollection();
+        $this->likes = new ArrayCollection();
+        $this->dislikes = new ArrayCollection();
+    }
+
+    public function addComment(Comment $comment): void
+    {
+         $comment->setPost($this);
+
+         if (!$this->comments->contains($comment)) {
+              $this->comments->add($comment);
+          }
+    }
+
+    public function removeComment(Comment $comment): void
+    {
+        $this->comments->removeElement($comment);
+    }
+
+    public function addlike(Like $like): void
+    {
+        $like->setPost($this);
+
+        if(!$this->likes->contains($like)){
+            $this->likes->add($like);
+        }
+    }
+
+    public function removeLike(Like $like): void
+    {
+        $this->likes->removeElement($like);
+    }
+
+    public function addDislike(Dislike $dislike): void
+    {
+        $dislike->setPost($this);
+
+        if(!$this->dislikes->contains($dislike)){
+            $this->dislikes->add($dislike);
+        }
+    }
+
+    public function removeDislike(Dislike $dislike): void
+    {
+        $this->dislikes->removeElement($dislike);
+    }
 
     public function getAuthor(): ?User
     {
@@ -119,19 +173,12 @@ class Post implements JsonSerializable
         return $this;
     }
 
-    public function getComments(): array
+    public function getComments(): Collection
     {
         return $this->comments;
     }
 
-    public function setComments(array $comments): self
-    {
-        $this->comments = $comments;
-
-        return $this;
-    }
-
-    public function getLikes(): array
+    public function getLikes(): Collection
     {
         return $this->likes;
     }
@@ -143,7 +190,7 @@ class Post implements JsonSerializable
         return $this;
     }
 
-    public function getDislikes(): array
+    public function getDislikes(): Collection
     {
         return $this->dislikes;
     }
@@ -164,10 +211,9 @@ class Post implements JsonSerializable
             "post_image_id" => $this->getPostImageId(),
             "author" => $this->getAuthor(),
             "date_of_create" => $this->getDateOfCreate(),
-            "comments" => $this->getComments(),
-            "likes" => $this->getLikes(),
-            "dislikes" => $this->getDislikes()
+            "comments" => $this->getComments()->toArray(),
+            "likes" => $this->getLikes()->toArray(),
+            "dislikes" => $this->getDislikes()->toArray()
         ];
     }
-
 }
