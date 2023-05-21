@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20230508172132 extends AbstractMigration
+final class Version20230519170136 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,13 +20,17 @@ final class Version20230508172132 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE users ADD roles JSON NOT NULL');
+        $this->addSql('ALTER TABLE posts DROP image_path');
+        $this->addSql('ALTER TABLE users ADD profile_image_name VARCHAR(255) DEFAULT NULL');
+        $this->addSql('ALTER TABLE users DROP user_photo_id');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('CREATE SCHEMA public');
-        $this->addSql('ALTER TABLE "users" DROP roles');
+        $this->addSql('ALTER TABLE "posts" ADD image_path VARCHAR(255) DEFAULT NULL');
+        $this->addSql('ALTER TABLE "users" ADD user_photo_id VARCHAR(255) NOT NULL');
+        $this->addSql('ALTER TABLE "users" DROP profile_image_name');
     }
 }

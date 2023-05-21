@@ -8,11 +8,16 @@ use Exception;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-class CreateUserService implements UserServiceInterface
+class CreateUserService
 {
     static public function handler(Request $request, ?UserPasswordHasherInterface $passwordHasher): User
     {
         try {
+
+            $uploadFile = $request->files->get('user_image');
+
+            $uploadFile = $uploadFile ?? null;
+
             $user = new User();
 
             $user->setUsername($request->get('username'));
@@ -21,7 +26,7 @@ class CreateUserService implements UserServiceInterface
 
             $user->setLast_name($request->get('last_name'));
 
-            $user->setUser_photo_id($request->get('user_photo_id'));
+            $user->setProfileImage($uploadFile);
 
             $date_of_birth = DateTime::createFromFormat('d/m/Y', $request->get('date_of_birth'));
 
@@ -41,10 +46,10 @@ class CreateUserService implements UserServiceInterface
 
             return $user;
 
-        } catch (\Throwable $th) {
+        } catch (Exception $e) {
             Throw new Exception('wrong data');
         }
 
-        return new User;
+        return new $user;
     }
 }
