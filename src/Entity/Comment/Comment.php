@@ -16,7 +16,7 @@ use JsonSerializable;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Uid\Uuid;
 
-#[Entity(repositoryClass:"App\Repository\CommentsRepository")]
+#[Entity(repositoryClass:"App\Repository\CommentRepository\CommentRepository")]
 #[Table(name: "`comments`")]
 class Comment implements JsonSerializable
 {

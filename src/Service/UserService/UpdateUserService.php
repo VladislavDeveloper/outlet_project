@@ -11,6 +11,9 @@ class UpdateUserService
 {
     static public function handler(Request $request, User $user, UserPasswordHasherInterface $passwordHasher): User
     {
+
+        $uploadFile = $request->files->get('user_image');
+
         if($request->get('username')){
             $user->setUsername($request->get('username'));
         }
@@ -20,8 +23,8 @@ class UpdateUserService
         if($request->get('last_name')){
             $user->setLast_name($request->get('last_name'));
         }
-        if($request->get('user_photo_id')){
-            $user->setUser_photo_id($request->get('user_photo_id'));
+        if($uploadFile){
+            $user->setProfileImage($uploadFile);
         }
         if($request->get('date_of_birth')){
             $date_of_birth = DateTime::createFromFormat('d/m/Y', $request->get('date_of_birth'));

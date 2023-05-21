@@ -106,4 +106,9 @@ class Dislike implements JsonSerializable
             'author' => $this->getAuthor()->getUser_uuid(),
         ];
     }
+
+    public function getDislikeUuid(): ?Uuid
+    {
+        return $this->dislike_uuid;
+    }
 }

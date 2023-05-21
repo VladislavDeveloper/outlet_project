@@ -3,8 +3,6 @@
 namespace App\Service\PostService;
 
 use App\Entity\Post\Post;
-use App\Entity\User\User;
-use DateTime;
 use Exception;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -12,6 +10,8 @@ class UpdatePostService
 {
     static public function handler(Request $request, Post $post): Post
     {
+        $uploadFile = $request->files->get('post_image');
+
         try {
 
             if($request->get('title')){
@@ -22,8 +22,8 @@ class UpdatePostService
                 $post->setBody($request->get('body'));
             }
             
-            if($request->get('post_image_id')){
-                $post->setPostImageId($request->get('post_image_id'));
+            if($uploadFile){
+                $post->setImageFile($uploadFile);
             }
 
             return $post;

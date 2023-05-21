@@ -3,8 +3,8 @@
 namespace App\Controller\CommentController;
 
 use App\Entity\Comment\Comment;
-use App\PostsRepository\PostRepository;
-use App\Repository\CommentsRepository;
+use App\Repository\CommentRepository\CommentRepository;
+use App\Repository\PostsRepository\PostRepository;
 use App\Repository\UsersRepository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -58,7 +58,7 @@ class CommentController extends AbstractController
     }
 
     #[Route('/api/posts/comment/update')]
-    public function updateComment(CommentsRepository $commentsRepository, EntityManagerInterface $entityManager, Request $request): JsonResponse
+    public function updateComment(CommentRepository $commentsRepository, EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
         try {
             $request = $this->transformJsonBody($request);
@@ -106,7 +106,7 @@ class CommentController extends AbstractController
     }
 
     #[Route('/api/posts/comment/delete/{comment_uuid}')]
-    public function removeCommentById(CommentsRepository $commentsRepository, EntityManagerInterface $entityManager, string $comment_uuid): JsonResponse
+    public function removeCommentById(CommentRepository $commentsRepository, EntityManagerInterface $entityManager, string $comment_uuid): JsonResponse
     {
         $comment = $commentsRepository->find($comment_uuid);
 

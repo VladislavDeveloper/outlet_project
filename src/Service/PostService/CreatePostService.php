@@ -12,7 +12,12 @@ class CreatePostService
 {
     static public function handler(Request $request, User $author): Post
     {
+        $uploadFile = $request->files->get('post_image');
+
+        $uploadFile = $uploadFile ?? null;
+
         try {
+            
             $post = new Post();
 
             $post->setAuthor($author);
@@ -21,7 +26,7 @@ class CreatePostService
 
             $post->setBody($request->get('body'));
 
-            $post->setPostImageId($request->get('post_image_id'));
+            $post->setImageFile($uploadFile);
 
             $date_of_create = new DateTime();
 

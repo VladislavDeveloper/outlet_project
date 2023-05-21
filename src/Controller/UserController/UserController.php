@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
 {
-    #[Route('/addUser', name: 'add_user')]
+    #[Route('/api/profile/create', name: 'add_user')]
     public function createUser(EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, Request $request): JsonResponse
     {
         try {
@@ -29,7 +29,7 @@ class UserController extends AbstractController
 
             $data = [
                 'status' => 200,
-                'Message' => 'Post successfully saved'
+                'Message' => 'Profile successfully saved'
             ];
 
             return $this->json($data);
@@ -37,21 +37,21 @@ class UserController extends AbstractController
         } catch (Exception $e) {
             $data = [
                 'status' => 404,
-                'Message' => 'Post not saved',
+                'Message' => 'Profile not saved',
                 'error' => $e->getMessage()
             ];
             return $this->json($data);
         }
     }
 
-    #[Route('/api/getusers')]
+    #[Route('/api/profiles/get/all', name: 'getAllUsers', methods: ['GET'])]
     public function getAllUsers(UserRepository $usersRepository): JsonResponse
     {
         $data = $usersRepository->findAll();
-        return $this->response($data);
+        return $this->json($data);
     }
 
-    #[Route('/api/getuser/{user_uuid}')]
+    #[Route('/api/profile/get/{user_uuid}')]
     public function getUserById(UserRepository $usersRepository, string $user_uuid): JsonResponse
     {
         $data = $usersRepository->find($user_uuid);
@@ -62,13 +62,13 @@ class UserController extends AbstractController
                 'message' => 'User not found'
             ];
 
-            return $this->response($data, 404);
+            return $this->json($data, 404);
         }
 
-        return $this->response($data);
+        return $this->json($data);
     }
 
-    #[Route('/api/update/profile/{user_uuid}')]
+    #[Route('/api/update/profile/{user_uuid}', name: 'updateProfile', methods: ['POST'])]
     public function updateUser(UserRepository $usersRepository, Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, string $user_uuid): JsonResponse
     {
         $user = $usersRepository->find($user_uuid);
@@ -78,7 +78,7 @@ class UserController extends AbstractController
                 'status' => 404,
                 'message' => 'User not found'
             ];
-            return $this->response($data, 404);
+            return $this->json($data, 404);
         }
 
         try {
@@ -90,7 +90,7 @@ class UserController extends AbstractController
                     'status' => 404,
                     'message' => 'Nothing to update'
                 ];
-                return $this->response($data, 404);
+                return $this->json($data, 404);
             }
 
             $user = UpdateUserService::handler($request, $user, $passwordHasher);
@@ -101,7 +101,7 @@ class UserController extends AbstractController
 
             $data = [
                 'status' => 200,
-                'Message' => 'Post successfully saved'
+                'Message' => 'Profile successfully saved'
             ];
 
             return $this->json($data);
@@ -127,7 +127,7 @@ class UserController extends AbstractController
                 'message' => 'User not found'
             ];
 
-            return $this->response($data, 404);
+            return $this->json($data, 404);
         }
 
         $entityManager->remove($data);
@@ -139,7 +139,7 @@ class UserController extends AbstractController
         ];
 
 
-        return $this->response($data);
+        return $this->json($data);
     }
 
     #[Route('/api/test')]
@@ -161,10 +161,5 @@ class UserController extends AbstractController
         $request->request->replace($data);
 
         return $request;
-    }
-
-    protected function response($data, $status = 200, $headers = []): JsonResponse
-    {
-        return new JsonResponse($data, $status, $headers);
     }
 }

@@ -103,4 +103,9 @@ class Like implements JsonSerializable
             'author_uuid' => $this->getAuthor()->getUser_uuid(),
         ];
     }
+
+    public function getLikeUuid(): ?Uuid
+    {
+        return $this->like_uuid;
+    }
 }

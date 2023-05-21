@@ -2,11 +2,11 @@
 
 namespace App\Controller\PostController;
 
-use App\PostsRepository\PostRepository;
+use App\Http\TransformJsonBody;
+use App\Repository\PostsRepository\PostRepository;
 use App\Repository\UsersRepository\UserRepository;
 use App\Service\PostService\CreatePostService;
 use App\Service\PostService\UpdatePostService;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,13 +16,24 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class PostController extends AbstractController
 {
-    #[Route('/api/posts/add', methods: ['POST'])]
+    #[Route('/api/posts/create', name:'createPost', methods: ['POST'])]
     public function createPost(EntityManagerInterface $entityManager, UserRepository $userRepository, Request $request): JsonResponse
     {
         try {
-            $request = $this->transformJsonBody($request);
+
+            $request = TransformJsonBody::handleRequest($request);
 
             $user = $userRepository->find($request->get('user_uuid'));
+
+            if(!$user){
+
+                $data = [
+                    'status' => 401,
+                    'message' => 'User Not Found'
+                ];
+
+                return $this->json($data, 401);
+            }
 
             $post = CreatePostService::handler($request, $user);
 
@@ -47,11 +58,11 @@ class PostController extends AbstractController
     }
 
     #[Route('/api/posts/update/{post_uuid}', name: 'updatePostById', methods: ['POST'])]
-    public function updatePost(EntityManagerInterface $entityManager, UserRepository $userRepository, PostRepository $postsRepository, Request $request, string $post_uuid): JsonResponse
+    public function updatePost(EntityManagerInterface $entityManager,PostRepository $postsRepository, Request $request, string $post_uuid): JsonResponse
     {
         try {
             
-            $request = $this->transformJsonBody($request);
+            $request = TransformJsonBody::handleRequest($request);
 
             $post = $postsRepository->find($post_uuid);
 
@@ -61,7 +72,7 @@ class PostController extends AbstractController
                     'message' => 'Post not found'
                 ];
     
-                return $this->response($data, 404);
+                return $this->json($data);
             }
 
             $post = UpdatePostService::handler($request, $post);
@@ -87,14 +98,6 @@ class PostController extends AbstractController
         }
     }
 
-    #[Route('/api/posts/get/all')]
-    public function getAllPosts(PostRepository $postsRepository): JsonResponse
-    {
-        $posts = $postsRepository->findAll();
-
-        return $this->response($posts);
-    }
-
     #[Route('/api/posts/delete/{post_uuid}', name: 'deletePostById', methods: ['DELETE'])]
     public function deletePostById(EntityManagerInterface $entityManager, PostRepository $postsRepository, string $post_uuid): JsonResponse
     {
@@ -106,7 +109,7 @@ class PostController extends AbstractController
                 'message' => 'Post not found'
             ];
 
-            return $this->response($data, 404);
+            return $this->json($data, 404);
         }
 
         $entityManager->remove($post);
@@ -117,7 +120,15 @@ class PostController extends AbstractController
             "message" => "Post deleted successfully"
         ];
 
-        return $this->response($data);
+        return $this->json($data);
+    }
+
+    #[Route('/api/posts/get/all', name: 'getAllPosts', methods: ['GET'])]
+    public function getAllPosts(PostRepository $postsRepository): JsonResponse
+    {
+        $posts = $postsRepository->findAll();
+
+        return $this->json($posts, 200);
     }
 
     #[Route('/api/posts/get/{post_uuid}', name: 'getOnePost', methods: ['GET'])]
@@ -125,24 +136,35 @@ class PostController extends AbstractController
     {
         $post = $postsRepository->find($post_uuid);
 
-        return $this->response($post);
-    }
+        if(!$post){
+            $data = [
+                'status' => 401,
+                'message' => 'Post not found'
+            ];
 
-    protected function transformJsonBody(Request $request): Request
-    {
-        $data = json_decode($request->getContent(), true);
-
-        if($data === null){
-            return $request;
+            return $this->json($data);
         }
 
-        $request->request->replace($data);
-
-        return $request;
+        return $this->json($post);
     }
 
-    protected function response($data, $status = 200, $headers = []): JsonResponse
+    #[Route('/api/posts/get/profile/{user_uuid}', name: 'getPostByUser', methods: ['GET'])]
+    public function getAllPostsByUser(UserRepository $userRepository, string $user_uuid): JsonResponse
     {
-        return new JsonResponse($data, $status, $headers);
+        $user = $userRepository->find($user_uuid);
+
+        if(!$user){
+            
+            $data = [
+                'status' => 401,
+                'message' => 'User not found'
+            ];
+
+            return $this->json($data);
+        }
+
+        $posts = $user->getPosts()->toArray();
+
+        return $this->json($posts);
     }
 }

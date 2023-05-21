@@ -1,6 +1,6 @@
 <?php
 
-namespace App\PostsRepository;
+namespace App\Repository\PostsRepository;
 
 use App\Entity\Post\Post;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

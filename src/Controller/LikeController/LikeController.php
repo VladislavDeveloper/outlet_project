@@ -3,8 +3,8 @@
 namespace App\Controller\LikeController;
 
 use App\Entity\Like\Like;
-use App\PostsRepository\PostRepository;
 use App\Repository\LikeRepository\LikeRepository;
+use App\Repository\PostsRepository\PostRepository;
 use App\Repository\UsersRepository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;

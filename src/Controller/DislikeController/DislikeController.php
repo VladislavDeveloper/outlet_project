@@ -3,8 +3,9 @@
 namespace App\Controller\DislikeController;
 
 use App\Entity\Dislike\Dislike;
-use App\PostsRepository\PostRepository;
+
 use App\Repository\DislikeRepository\DislikeRepository;
+use App\Repository\PostsRepository\PostRepository;
 use App\Repository\UsersRepository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;

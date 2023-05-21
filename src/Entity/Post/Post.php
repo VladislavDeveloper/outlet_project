@@ -22,9 +22,12 @@ use Doctrine\ORM\Mapping\Table;
 use JsonSerializable;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
-#[Entity(repositoryClass:"App\PostsRepository\PostRepository")]
+#[Entity(repositoryClass:"App\Repository\PostsRepository\PostRepository")]
 #[Table(name: "`posts`")]
+#[Vich\Uploadable]
 class Post implements JsonSerializable
 {
 
@@ -44,8 +47,11 @@ class Post implements JsonSerializable
     #[Column(type: 'string')]
     private string $body;
 
-    #[Column(type: 'string')]
-    private string $post_image_id;
+    #[Column(type: 'string', nullable: true)]
+    private ?string $imageName = null;
+
+    #[Vich\UploadableField(mapping: 'posts', fileNameProperty: 'imageName')]
+    private ?File $imageFile = null;
 
     #[Column(name: 'date_of_create', type: Types::DATETIME_MUTABLE)]
     private DateTime $date_of_create;
@@ -64,6 +70,31 @@ class Post implements JsonSerializable
         $this->comments = new ArrayCollection();
         $this->likes = new ArrayCollection();
         $this->dislikes = new ArrayCollection();
+    }
+
+    public function setImageFile(?File $imageFile = null): void
+    {
+        $this->imageFile = $imageFile;
+
+        if (null !== $imageFile) {
+            // It is required that at least one field changes if you are using doctrine
+            // otherwise the event listeners won't be called and the file is lost
+        }
+    }
+
+    public function setImageName(?string $imageName): void
+    {
+        $this->imageName = $imageName;
+    }
+
+    public function getImageName(): ?string
+    {
+        return $this->imageName;
+    }
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
     }
 
     public function addComment(Comment $comment): void
@@ -149,18 +180,6 @@ class Post implements JsonSerializable
         return $this;
     }
 
-    public function getPostImageId(): ?string
-    {
-        return $this->post_image_id;
-    }
-
-    public function setPostImageId(string $post_image_id): self
-    {
-        $this->post_image_id = $post_image_id;
-
-        return $this;
-    }
-
     public function getDateOfCreate(): ?\DateTimeInterface
     {
         return $this->date_of_create;
@@ -208,8 +227,8 @@ class Post implements JsonSerializable
             "post_uuid" => $this->getPostUuid(),
             "title" => $this->getTitle(),
             "body" => $this->getBody(),
-            "post_image_id" => $this->getPostImageId(),
             "author" => $this->getAuthor(),
+            "post_image" => $this->getImageName(),
             "date_of_create" => $this->getDateOfCreate(),
             "comments" => $this->getComments()->toArray(),
             "likes" => $this->getLikes()->toArray(),
